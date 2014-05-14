@@ -4,6 +4,8 @@
 #include <string>
 #include <time.h>
 
+#include <SDL.h>
+
 #include "Physics.h"
 #include "SdlMethods.h"
 
@@ -16,23 +18,31 @@ const int SCREEN_HEIGHT = 600;
 const double VELOCITY = 10.0;
 const double ACCELERATION = 1.0;
 const int FRAMES_PER_SEC = 15;
+const string IMAGE_PATH = "C:\\dev\\projects\\SDL_g\\Debug\\images\\man_1.png";
 
 double _time = 0.0;
 double _acceleration = 0;
+
+// window that will be created
+SDL_Window* window;
+// the surface contained by the window
+SDL_Surface* windowSurface;
+// the image we will load and show on the screen
+SDL_Surface* image;
 
 
 #pragma endregion
 
 int main( int argc, char* args[] )
 {
-	if ( !init( "This Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
+	if ( !init( &window, &windowSurface, "This Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
 	{
 		printf( "Failed to initialize.\n" );
 		std::cin.ignore();
 		return -1;
 	}
 	
-	if ( !loadMedia() )
+	if ( !loadMedia( &image, &windowSurface, IMAGE_PATH ) )
 	{
 		printf( "Failed to load media.\n" );
 		std::cin.ignore();
@@ -72,12 +82,12 @@ int main( int argc, char* args[] )
 						pos_y -= VELOCITY;
 						if (pos_y < 0)
 						{
-							pos_y = SCREEN_HEIGHT - _image->h;
+							pos_y = SCREEN_HEIGHT - image->h;
 						}
 						break;
 					case SDLK_DOWN:
 						pos_y += VELOCITY;
-						if (pos_y > SCREEN_HEIGHT - _image->h)
+						if (pos_y > SCREEN_HEIGHT - image->h)
 						{
 							pos_y = 0;
 						}
@@ -86,12 +96,12 @@ int main( int argc, char* args[] )
 						pos_x -= VELOCITY;
 						if (pos_x < 0)
 						{
-							pos_x = SCREEN_WIDTH - _image->w;
+							pos_x = SCREEN_WIDTH - image->w;
 						}
 						break;
 					case SDLK_RIGHT:
 						pos_x += VELOCITY;
-						if (pos_x > SCREEN_WIDTH - _image->w)
+						if (pos_x > SCREEN_WIDTH - image->w)
 						{
 							pos_x = 0;
 						}
@@ -110,7 +120,7 @@ int main( int argc, char* args[] )
 			pos_x += (int)Physics::Displacement(vi, vf, _time - ti);
 		}
 
-		if (pos_x > SCREEN_WIDTH - _image->w)
+		if (pos_x > SCREEN_WIDTH - image->w)
 		{
 			pos_x = 0;
 		}
@@ -120,9 +130,9 @@ int main( int argc, char* args[] )
 			printf("t=%f:(x=%i,y=%i):vi=%f;vf=%f;a=%f;\n", _time, pos_x, pos_y, vi, vf, _acceleration);
 		}
 
-		SDL_FillRect(_windowSurface, NULL, 0x000000);		
-		StretchSurface( _image, _windowSurface, pos_x, pos_y, _image->w, _image->h);
-		SDL_UpdateWindowSurface( _window );
+		SDL_FillRect( windowSurface, NULL, 0x000000 );
+		StretchSurface( image, windowSurface, pos_x, pos_y, image->w, image->h);
+		SDL_UpdateWindowSurface( window );
 
 		pvi = vi;
 		vi = vf;
@@ -136,7 +146,7 @@ int main( int argc, char* args[] )
 		ti = _time;
 	}
 
-	close();
+	close( &window, &windowSurface );
 	std::cout << "Press <ENTER> to exit..." << std::endl;
 	std::cin.ignore();
 	return 0;

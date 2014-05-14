@@ -2,20 +2,11 @@
 
 #pragma region Globals
 
-const string IMAGE_PATH = "C:\\dev\\projects\\SDL_g\\Debug\\images\\man_1.png";
-
-// the window handling the rendering
-SDL_Window* _window = NULL;
-// the surface contained by the window
-SDL_Surface* _windowSurface = NULL;
-// the image we will load and show on the screen
-SDL_Surface* _image = NULL;
-
 #pragma endregion
 
 #pragma region Function Definitions
 
-bool init( string windowName, int screenWidth, int screenHeight )
+bool init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, int screenWidth, int screenHeight )
 {
 	bool success = true;
 
@@ -26,7 +17,7 @@ bool init( string windowName, int screenWidth, int screenHeight )
 	}
 	else
 	{
-		_window = SDL_CreateWindow( 
+		*window = SDL_CreateWindow( 
 			windowName.c_str(), 
 			SDL_WINDOWPOS_UNDEFINED, 
 			SDL_WINDOWPOS_UNDEFINED, 
@@ -34,7 +25,7 @@ bool init( string windowName, int screenWidth, int screenHeight )
 			screenHeight, 
 			SDL_WINDOW_SHOWN);
 
-		if ( _window == NULL )
+		if ( *window == NULL )
 		{
 			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
 			success = false;
@@ -49,8 +40,8 @@ bool init( string windowName, int screenWidth, int screenHeight )
 				success = false;
 			}
 			
-			_windowSurface = SDL_GetWindowSurface( _window );
-			if ( _windowSurface == NULL )
+			*windowSurface = SDL_GetWindowSurface( *window );
+			if ( *windowSurface == NULL )
 			{
 				printf( "Window's surface could not be created! SDL_Error: %s\n", SDL_GetError() );
 				success = false;
@@ -61,13 +52,12 @@ bool init( string windowName, int screenWidth, int screenHeight )
 	return success;
 }
 
-bool loadMedia( void )
+bool loadMedia( SDL_Surface** image, SDL_Surface** windowSurface, string imagePath )
 {
 	bool success = true;
 
-	//_image = LoadOptimizedBmpSurface( "images/man_1.bmp" );
-	_image = LoadOptimizedPngSurface( IMAGE_PATH );
-	if ( _image == NULL )
+	*image = LoadOptimizedPngSurface( *windowSurface, imagePath );
+	if ( *image == NULL )
 	{
 		printf( "Could not load image! SDL_Error: %s\n", SDL_GetError() );
 		success = false;
@@ -75,18 +65,18 @@ bool loadMedia( void )
 	return success;
 }
 
-void close( void )
+void close( SDL_Window** window, SDL_Surface** windowSurface )
 {
-	SDL_FreeSurface( _windowSurface );
-	_windowSurface = NULL;
+	SDL_FreeSurface( *windowSurface );
+	windowSurface = NULL;
 
-	SDL_DestroyWindow( _window );
-	_window = NULL;
+	SDL_DestroyWindow( *window );
+	window = NULL;
 
 	SDL_Quit();
 }
 
-SDL_Surface* LoadOptimizedPngSurface( string path )
+SDL_Surface* LoadOptimizedPngSurface( SDL_Surface* windowSurface, string path )
 {
 	SDL_Surface* dest = NULL;
 	SDL_Surface* src = IMG_Load( path.c_str() );
@@ -97,7 +87,7 @@ SDL_Surface* LoadOptimizedPngSurface( string path )
 	}
 	else
 	{
-		dest = SDL_ConvertSurface( src, _windowSurface->format, NULL );
+		dest = SDL_ConvertSurface( src, windowSurface->format, NULL );
 		if ( dest == NULL )
 		{
 			printf( "Error converting to optimized surface for picture '%s'. SDL_Error: %s\n", path.c_str(), SDL_GetError() );
@@ -107,7 +97,7 @@ SDL_Surface* LoadOptimizedPngSurface( string path )
 	return dest;
 }
 
-SDL_Surface* LoadOptimizedBmpSurface( string path )
+SDL_Surface* LoadOptimizedBmpSurface( SDL_Surface* windowSurface, string path )
 {
 	SDL_Surface* s = NULL;
 
@@ -118,7 +108,7 @@ SDL_Surface* LoadOptimizedBmpSurface( string path )
 	}
 	else
 	{
-		s = SDL_ConvertSurface( ls, _windowSurface->format, NULL );
+		s = SDL_ConvertSurface( ls, windowSurface->format, NULL );
 		if ( s == NULL )
 		{
 			printf( "Unable to convert image to surface. SDL Error: %s\n", SDL_GetError() );
