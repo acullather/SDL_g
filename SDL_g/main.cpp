@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "Physics.h"
+#include "SdlMethods.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ double _acceleration = 0;
 
 int main( int argc, char* args[] )
 {
-	if ( !init() )
+	if ( !init( "This Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
 	{
 		printf( "Failed to initialize.\n" );
 		std::cin.ignore();

@@ -1,9 +1,4 @@
-#include <string>
-
-#include <SDL.h>
-#include <SDL_image.h>
-
-using namespace std;
+#include "SdlMethods.h"
 
 #pragma region Globals
 
@@ -18,28 +13,9 @@ SDL_Surface* _image = NULL;
 
 #pragma endregion
 
-
-#pragma region Prototypes
-
-// starts up SDL and creates window
-bool init( void );
-
-// loads media
-bool loadMedia( void );
-
-// frees resources and closes window
-void close( void );
-
-SDL_Surface* LoadOptimizedPngSurface( string path );
-SDL_Surface* LoadOptimizedBmpSurface( string path );
-
-void StretchSurface( SDL_Surface* src, SDL_Surface* dest, int x, int y, int w, int h );
-
-#pragma endregion
-
 #pragma region Function Definitions
 
-bool init( void )
+bool init( string windowName, int screenWidth, int screenHeight )
 {
 	bool success = true;
 
@@ -51,11 +27,11 @@ bool init( void )
 	else
 	{
 		_window = SDL_CreateWindow( 
-			"Test Window", 
+			windowName.c_str(), 
 			SDL_WINDOWPOS_UNDEFINED, 
 			SDL_WINDOWPOS_UNDEFINED, 
-			SCREEN_WIDTH, 
-			SCREEN_HEIGHT, 
+			screenWidth, 
+			screenHeight, 
 			SDL_WINDOW_SHOWN);
 
 		if ( _window == NULL )
