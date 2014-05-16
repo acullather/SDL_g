@@ -6,14 +6,14 @@
 
 #pragma region Function Definitions
 
-bool init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, int screenWidth, int screenHeight )
+bool Init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, int screenWidth, int screenHeight )
 {
 	bool success = true;
 
 	if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
 		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-		success = false;
+		return false;
 	}
 	else
 	{
@@ -28,7 +28,7 @@ bool init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, 
 		if ( *window == NULL )
 		{
 			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-			success = false;
+			return false;
 		}
 		else
 		{
@@ -37,14 +37,14 @@ bool init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, 
 			if ( !( IMG_Init( imgFlags ) & imgFlags ) )
 			{
 				printf( "Could not initialize SDL_image! SDL_Error: %s\n", SDL_GetError() );
-				success = false;
+				return false;
 			}
 			
 			*windowSurface = SDL_GetWindowSurface( *window );
 			if ( *windowSurface == NULL )
 			{
 				printf( "Window's surface could not be created! SDL_Error: %s\n", SDL_GetError() );
-				success = false;
+				return false;
 			}
 		}
 	}
@@ -52,7 +52,55 @@ bool init( SDL_Window** window, SDL_Surface** windowSurface, string windowName, 
 	return success;
 }
 
-bool loadMedia( SDL_Surface** image, SDL_Surface** windowSurface, string imagePath )
+bool Init( SDL_Window** window, SDL_Renderer** renderer, string windowName, int screenWidth, int screenHeight )
+{
+	bool success = true;
+
+	if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+	{
+		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+		return false;
+	}
+	else
+	{
+		*window = SDL_CreateWindow( 
+			windowName.c_str(), 
+			SDL_WINDOWPOS_UNDEFINED, 
+			SDL_WINDOWPOS_UNDEFINED, 
+			screenWidth, 
+			screenHeight, 
+			SDL_WINDOW_SHOWN);
+
+		if ( *window == NULL )
+		{
+			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+			return false;
+		}
+		else
+		{
+			*renderer = SDL_CreateRenderer( *window, -1, SDL_RENDERER_ACCELERATED );
+			if ( *renderer == NULL )
+			{
+				printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+				return false;
+			}
+
+			SDL_SetRenderDrawColor( *renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+
+			// initiate PNG loading
+			int imgFlags = IMG_INIT_PNG;
+			if ( !( IMG_Init( imgFlags ) & imgFlags ) )
+			{
+				printf( "Could not initialize SDL_image! SDL_Error: %s\n", SDL_GetError() );
+				return false;
+			}
+		}
+	}
+
+	return success;
+}
+
+bool LoadMedia( SDL_Surface** image, SDL_Surface** windowSurface, string imagePath )
 {
 	bool success = true;
 
@@ -65,7 +113,25 @@ bool loadMedia( SDL_Surface** image, SDL_Surface** windowSurface, string imagePa
 	return success;
 }
 
-void close( SDL_Window** window, SDL_Surface** windowSurface )
+bool LoadMedia( SDL_Texture** texture, SDL_Renderer** renderer, string imagePath )
+{
+	*texture = LoadPngAsTexture( *renderer, imagePath );
+	if ( *texture == NULL )
+	{
+		printf( "Failed to load image.\n" );
+		return false;
+	}
+	return true;
+}
+
+bool LoadMedia( void )
+{
+	bool success = true;
+
+	return success;
+}
+
+void Close( SDL_Window** window, SDL_Surface** windowSurface )
 {
 	SDL_FreeSurface( *windowSurface );
 	windowSurface = NULL;
@@ -73,6 +139,22 @@ void close( SDL_Window** window, SDL_Surface** windowSurface )
 	SDL_DestroyWindow( *window );
 	window = NULL;
 
+	IMG_Quit();
+	SDL_Quit();
+}
+
+void Close( SDL_Window** window, SDL_Renderer** renderer, SDL_Texture** texture )
+{
+	SDL_DestroyTexture( *texture );
+	*texture = NULL;
+
+	SDL_DestroyRenderer( *renderer );
+	SDL_DestroyWindow( *window );
+
+	*renderer = NULL;
+	*window = NULL;
+
+	IMG_Quit();
 	SDL_Quit();
 }
 
@@ -126,6 +208,75 @@ void StretchSurface( SDL_Surface* src, SDL_Surface* dest, int x, int y, int w, i
 	stretchRect.w = w;
 	stretchRect.h = h;
 	SDL_BlitScaled( src, NULL, dest, &stretchRect );
+}
+
+SDL_Texture* LoadPngAsTexture( SDL_Renderer* renderer, string path )
+{
+	SDL_Texture* finalTexture = NULL;
+
+	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
+	if ( loadedSurface == NULL )
+	{
+		printf( "Unable to load image '%s'. SDL_image Error: %s", path.c_str(), SDL_GetError() );
+		return NULL;
+	}
+
+	finalTexture = SDL_CreateTextureFromSurface( renderer, loadedSurface );
+	if ( finalTexture == NULL )
+	{
+		printf( "Unable to create texture from image '%s'. SDL_image Error: %s", path.c_str(), SDL_GetError() );
+		return NULL;
+	}
+
+	SDL_FreeSurface( loadedSurface );
+
+	return finalTexture;
+}
+
+void LoadTextures( SDL_Renderer* renderer, vector<Texture>* textures, vector<string>* fileNames )
+{
+	for (int i = 0; i < fileNames->size(); i++)
+	{
+		Texture t;
+
+		t.SetRenderer( renderer );
+		t.LoadImageFromFile( fileNames->at(i) );
+
+		textures->push_back( t );
+	}
+}
+
+FileType GetExtensionFromPath( std::string path )
+{
+	FileType ft;
+	if ( path.size() < 4 || path.substr( path.size() - 4, 1 ).c_str() != "." )
+	{
+		ft = NONE;
+	}
+	else
+	{
+		string s = path.substr( path.size() - 3, 3 );
+		std::transform(s.begin(), s.end(), s.begin(), ::tolower );
+	
+		if ( s == "png" )
+		{
+			ft = PNG;
+		}
+		else if ( s == "jpg" )
+		{
+			ft = JPG;
+		}
+		else if ( s == "bmp" )
+		{
+			ft = BMP;
+		}
+		else
+		{
+			ft = NONE;
+		}
+	}
+
+	return ft;
 }
 
 #pragma endregion

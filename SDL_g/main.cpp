@@ -8,6 +8,7 @@
 
 #include "Physics.h"
 #include "SdlMethods.h"
+#include "Texture.h"
 
 using namespace std;
 
@@ -29,25 +30,41 @@ SDL_Window* window;
 SDL_Surface* windowSurface;
 // the image we will load and show on the screen
 SDL_Surface* image;
-
+// renderer where textures are drawn
+SDL_Renderer* renderer;
+SDL_Texture* texture;
 
 #pragma endregion
 
 int main( int argc, char* args[] )
 {
-	if ( !init( &window, &windowSurface, "This Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
+	//if ( !init( &window, &windowSurface, "Surface Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
+	if ( !Init( &window, &renderer, "Renderer Window", SCREEN_WIDTH, SCREEN_HEIGHT ) )
 	{
 		printf( "Failed to initialize.\n" );
 		std::cin.ignore();
 		return -1;
 	}
 	
-	if ( !loadMedia( &image, &windowSurface, IMAGE_PATH ) )
+	//if ( !loadMedia( &image, &windowSurface, IMAGE_PATH ) )
+	if ( !LoadMedia( &texture, &renderer, IMAGE_PATH ) )
 	{
 		printf( "Failed to load media.\n" );
 		std::cin.ignore();
 		return -2;
 	}
+
+	Texture t1;
+	t1.SetRenderer( renderer );
+	t1.LoadImageFromFile( IMAGE_PATH );
+
+	// surfaces
+	//int w = image->w;
+	//int h = image->h;
+
+	// texture
+	int w = 100;
+	int h = 100;
 
 	bool quit = false;
 	SDL_Event e;
@@ -79,29 +96,29 @@ int main( int argc, char* args[] )
 						quit = true;
 						break;
 					case SDLK_UP:
-						pos_y -= VELOCITY;
+						pos_y -= (int)VELOCITY;
 						if (pos_y < 0)
 						{
-							pos_y = SCREEN_HEIGHT - image->h;
+							pos_y = SCREEN_HEIGHT - h;
 						}
 						break;
 					case SDLK_DOWN:
-						pos_y += VELOCITY;
-						if (pos_y > SCREEN_HEIGHT - image->h)
+						pos_y += (int)VELOCITY;
+						if (pos_y > SCREEN_HEIGHT - h)
 						{
 							pos_y = 0;
 						}
 						break;
 					case SDLK_LEFT:
-						pos_x -= VELOCITY;
+						pos_x -= (int)VELOCITY;
 						if (pos_x < 0)
 						{
-							pos_x = SCREEN_WIDTH - image->w;
+							pos_x = SCREEN_WIDTH - w;
 						}
 						break;
 					case SDLK_RIGHT:
-						pos_x += VELOCITY;
-						if (pos_x > SCREEN_WIDTH - image->w)
+						pos_x += (int)VELOCITY;
+						if (pos_x > SCREEN_WIDTH - w)
 						{
 							pos_x = 0;
 						}
@@ -120,7 +137,7 @@ int main( int argc, char* args[] )
 			pos_x += (int)Physics::Displacement(vi, vf, _time - ti);
 		}
 
-		if (pos_x > SCREEN_WIDTH - image->w)
+		if (pos_x > SCREEN_WIDTH - w)
 		{
 			pos_x = 0;
 		}
@@ -130,9 +147,27 @@ int main( int argc, char* args[] )
 			printf("t=%f:(x=%i,y=%i):vi=%f;vf=%f;a=%f;\n", _time, pos_x, pos_y, vi, vf, _acceleration);
 		}
 
-		SDL_FillRect( windowSurface, NULL, 0x000000 );
-		StretchSurface( image, windowSurface, pos_x, pos_y, image->w, image->h);
-		SDL_UpdateWindowSurface( window );
+		// surfaces
+		//SDL_FillRect( windowSurface, NULL, 0x000000 );
+		//StretchSurface( image, windowSurface, pos_x, pos_y, image->w, image->h);
+		//SDL_UpdateWindowSurface( window );
+
+		// textures
+		// 1. clear screen
+		SDL_RenderClear( renderer );
+		SDL_Rect rect;
+		rect.x = pos_x;
+		rect.y = 0;
+		rect.w = 100;
+		rect.h = 100;
+		SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+
+		// 2. copy image to renderer
+		SDL_RenderCopy( renderer, *(t1.GetTexture()), NULL, &rect );
+		//SDL_RenderFillRect( renderer, &rect );
+
+		// 3. update window
+		SDL_RenderPresent( renderer );
 
 		pvi = vi;
 		vi = vf;
@@ -146,7 +181,7 @@ int main( int argc, char* args[] )
 		ti = _time;
 	}
 
-	close( &window, &windowSurface );
+	Close( &window, &windowSurface );
 	std::cout << "Press <ENTER> to exit..." << std::endl;
 	std::cin.ignore();
 	return 0;

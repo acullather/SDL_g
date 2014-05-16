@@ -39,8 +39,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\dev\SDL\SDL2_image-2.0.0\include;C:\dev\SDL\SDL2-2.0.1\SDL2-2.0.1_VC\include;C:\dev\SDL\SDL2-2.0.3_VC\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\dev\SDL\SDL2_image-2.0.0\lib\x86;C:\dev\SDL\SDL2-2.0.1\SDL2-2.0.1_VC\lib\x86;C:\dev\SDL\SDL2-2.0.3_VC\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\dev\SDL\SDL2_ttf-2.0.12\include;C:\dev\SDL\SDL2_image-2.0.0\include;C:\dev\SDL\SDL2-2.0.1\SDL2-2.0.1_VC\include;C:\dev\SDL\SDL2-2.0.3_VC\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\dev\SDL\SDL2_ttf-2.0.12\lib\x86;C:\dev\SDL\SDL2_image-2.0.0\lib\x86;C:\dev\SDL\SDL2-2.0.1\SDL2-2.0.1_VC\lib\x86;C:\dev\SDL\SDL2-2.0.3_VC\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -50,7 +50,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -71,17 +71,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\c\25_capping_frame_rate\25_capping_frame_rate.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="SdlMethods.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="SdlMethods.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
